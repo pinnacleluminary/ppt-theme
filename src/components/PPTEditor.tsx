@@ -7,6 +7,8 @@ import { ChartDisplay } from './charts/ChartDisplay';
 import { ChartEditor } from './charts/ChartEditor';
 import { ChartToolbar } from './charts/ChartToolbar';
 import { defaultThemeColors, ThemeColorPicker } from './ThemeColorPicker';
+import { ThemeFontsManager } from './ThemeFontsManager';
+import { ThemeFonts } from './ThemeFontsEditor';
 
 // Types
 interface Slide {
@@ -17,6 +19,8 @@ interface Slide {
   titleColor: string;
   contentColor: string;
   charts: ChartData[];
+  titleFont?: string;
+  bodyFont?: string;
 }
 
 interface Theme {
@@ -110,6 +114,7 @@ const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
   const [customBackground, setCustomBackground] = useState<string>(predefinedThemes[0].background);
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [themes, setThemes] = useState<Theme[]>(predefinedThemes);
+  const [themeFonts, setThemeFonts] = useState<ThemeFonts[]>([]);
 
   const themeColors = currentTheme?.colors || defaultThemeColors;
   // Handlers
@@ -241,6 +246,15 @@ const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
     setSlides(updatedSlides);
   };
   
+  const applyFonts = (fonts: ThemeFonts) => {
+    const updatedSlides = [...slides];
+    updatedSlides[currentSlide] = {
+      ...updatedSlides[currentSlide],
+      titleFont: fonts.titleFont,
+      bodyFont: fonts.bodyFont
+    };
+    setSlides(updatedSlides);
+  };
 
   return (
     <div className="container-fluid">
@@ -295,6 +309,11 @@ const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
             >
               <Palette size={16} /> Theme Colors
             </button>
+            <ThemeFontsManager
+  onThemeFontsChange={setThemeFonts}
+  onApplyFonts={applyFonts}
+  initialThemeFonts={themeFonts}
+/>
           </div>
         </div>
 
@@ -395,29 +414,31 @@ const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
               }}
             >
               <input
-                type="text"
-                className="form-control mb-3"
-                value={slides[currentSlide].title}
-                onChange={(e) => updateSlideTitle(e.target.value)}
-                placeholder="Slide Title"
-                style={{
-                  color: slides[currentSlide].titleColor,
-                  backgroundColor: 'transparent',
-                  border: '1px solid rgba(0,0,0,0.1)'
-                }}
-              />
-              <textarea
-                className="form-control mb-3"
-                rows={5}
-                value={slides[currentSlide].content}
-                onChange={(e) => updateSlideContent(e.target.value)}
-                placeholder="Slide Content"
-                style={{
-                  color: slides[currentSlide].contentColor,
-                  backgroundColor: 'transparent',
-                  border: '1px solid rgba(0,0,0,0.1)'
-                }}
-              />
+  type="text"
+  className="form-control mb-3"
+  value={slides[currentSlide].title}
+  onChange={(e) => updateSlideTitle(e.target.value)}
+  placeholder="Slide Title"
+  style={{
+    color: slides[currentSlide].titleColor,
+    backgroundColor: 'transparent',
+    border: '1px solid rgba(0,0,0,0.1)',
+    fontFamily: slides[currentSlide].titleFont || 'inherit' // Add this
+  }}
+/>
+<textarea
+  className="form-control mb-3"
+  rows={5}
+  value={slides[currentSlide].content}
+  onChange={(e) => updateSlideContent(e.target.value)}
+  placeholder="Slide Content"
+  style={{
+    color: slides[currentSlide].contentColor,
+    backgroundColor: 'transparent',
+    border: '1px solid rgba(0,0,0,0.1)',
+    fontFamily: slides[currentSlide].bodyFont || 'inherit' // Add this
+  }}
+/>
               {/* Charts */}
               {slides[currentSlide].charts.map((chart) => (
                 <ChartEditor
@@ -432,6 +453,7 @@ const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
           </div>
         </div>
       </div>
+      
 
       {/* Modals */}
       <ThemeColorPicker
