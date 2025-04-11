@@ -88,8 +88,8 @@ interface PPTEditorProps {
 const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
   // Predefined slide sizes
   const slideSizes: SlideSize[] = [
-    { name: 'Standard (4:3)', width: '800px', height: '600px' },
-    { name: 'Widescreen (16:9)', width: '960px', height: '540px' },
+    { name: 'Standard (4:3)', width: '560px', height: '420px' },
+    { name: 'Widescreen (16:9)', width: '672px', height: '378px' },
     { name: 'Custom', width: '100%', height: 'auto' }
   ];
 
