@@ -128,12 +128,12 @@ export const ChartEditor: React.FC<ChartEditorProps> = ({
             <h5 className="card-title mb-0">{title}</h5>
           )}
           <div className="btn-group">
-            <button
+            {/* <button
               className="btn btn-outline-primary btn-sm"
               onClick={() => setIsEditing(!isEditing)}
             >
               <Edit2 size={16} />
-            </button>
+            </button> */}
             <button
               className="btn btn-outline-danger btn-sm"
               onClick={onDelete}
