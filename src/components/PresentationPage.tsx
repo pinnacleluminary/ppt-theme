@@ -20,8 +20,8 @@ const PresentationPage: React.FC = () => {
       </div>
 
       <PPTModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        show={isModalOpen}
+        onHide={() => setIsModalOpen(false)}
       />
     </div>
   );

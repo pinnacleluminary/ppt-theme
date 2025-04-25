@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart2, LineChart as LineChartIcon, PieChart as PieChartIcon } from 'lucide-react';
+import { BarChart2, LineChart as LineChartIcon, PieChart as PieChartIcon, X } from 'lucide-react';
 import { 
   BarChart, 
   Bar, 
@@ -171,52 +171,203 @@ export const ChartModal: React.FC<ChartModalProps> = ({
   const colors = themeColors || defaultColors;
 
   const chartTypes = [
-    { type: 'bar' as const, icon: BarChart2, label: 'Bar Chart' },
-    { type: 'line' as const, icon: LineChartIcon, label: 'Line Chart' },
-    { type: 'pie' as const, icon: PieChartIcon, label: 'Pie Chart' },
+    { type: 'bar' as const, icon: BarChart2, label: 'Bar Chart', description: 'Compare values across categories' },
+    { type: 'line' as const, icon: LineChartIcon, label: 'Line Chart', description: 'Show trends over time or sequences' },
+    { type: 'pie' as const, icon: PieChartIcon, label: 'Pie Chart', description: 'Display proportional data distribution' },
   ];
 
   return (
-    <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-dialog-centered modal-lg">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Select Chart Type</h5>
-            <button type="button" className="btn-close" onClick={onClose}></button>
+    <div className="chart-modal-overlay">
+      <div className="chart-modal-container">
+        <div className="chart-modal-content">
+          <div className="chart-modal-header">
+            <div className="header-content">
+              <h4>Choose Your Chart Type</h4>
+              <p className="text-muted">Select the best visualization for your data</p>
+            </div>
+            <button className="close-button" onClick={onClose}>
+              <X size={24} />
+            </button>
           </div>
-          <div className="modal-body">
-            <div className="d-flex flex-wrap gap-3 justify-content-center">
-              {chartTypes.map(({ type, icon: Icon, label }) => (
-                <div
-                  key={type}
-                  className="card chart-type-card"
-                  style={{ 
-                    width: '250px', 
-                    cursor: 'pointer',
-                    border: `1px solid ${colors.accent1}`
-                  }}
-                  onClick={() => {
-                    onSelectChart(type);
-                    onClose();
-                  }}
-                >
-                  <div className="card-body text-center p-3">
-                    <Icon 
-                      size={24} 
-                      className="mb-2"
-                      color={colors.accent1}
-                    />
-                    <div className="mb-3" style={{ color: colors.textDark1 }}>
-                      {label}
-                    </div>
+          
+          <div className="chart-options-container">
+            {chartTypes.map(({ type, icon: Icon, label, description }) => (
+              <div
+                key={type}
+                className="chart-option-card"
+                onClick={() => {
+                  onSelectChart(type);
+                  onClose();
+                }}
+              >
+                <div className="chart-option-content">
+                  <div className="chart-option-header">
+                    <Icon size={24} color={colors.accent1} />
+                    <h5>{label}</h5>
+                    <p>{description}</p>
+                  </div>
+                  <div className="chart-preview-container">
                     <ChartPreview type={type} colors={colors} />
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+
+      <style>{`
+        .chart-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1050;
+          backdrop-filter: blur(4px);
+          animation: fadeIn 0.2s ease-out;
+        }
+
+        .chart-modal-container {
+          width: 90%;
+          max-width: 1200px;
+          margin: 2rem;
+          animation: slideIn 0.3s ease-out;
+        }
+
+        .chart-modal-content {
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+        }
+
+        .chart-modal-header {
+          padding: 24px 32px;
+          border-bottom: 1px solid #f0f0f0;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+
+        .header-content h4 {
+          margin: 0;
+          color: ${colors.textDark1};
+          font-weight: 600;
+          font-size: 1.5rem;
+        }
+
+        .header-content p {
+          margin: 8px 0 0;
+          font-size: 0.95rem;
+        }
+
+        .close-button {
+          background: none;
+          border: none;
+          padding: 8px;
+          border-radius: 8px;
+          color: ${colors.textDark2};
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .close-button:hover {
+          background-color: #f5f5f5;
+          transform: rotate(90deg);
+        }
+
+        .chart-options-container {
+          padding: 32px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 24px;
+          background-color: #f8f9fa;
+        }
+
+        .chart-option-card {
+          background: white;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border: 1px solid #e0e0e0;
+          overflow: hidden;
+        }
+
+        .chart-option-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+          border-color: ${colors.accent1};
+        }
+
+        .chart-option-content {
+          padding: 24px;
+        }
+
+        .chart-option-header {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+        .chart-option-header h5 {
+          margin: 12px 0 8px;
+          color: ${colors.textDark1};
+          font-weight: 600;
+        }
+
+        .chart-option-header p {
+          color: ${colors.textDark2};
+          margin: 0;
+          font-size: 0.9rem;
+        }
+
+        .chart-preview-container {
+          background-color: #ffffff;
+          border-radius: 8px;
+          padding: 16px;
+          border: 1px solid #f0f0f0;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (max-width: 768px) {
+          .chart-modal-container {
+            width: 95%;
+            margin: 1rem;
+          }
+
+          .chart-modal-header {
+            padding: 20px;
+          }
+
+          .chart-options-container {
+            padding: 20px;
+            grid-template-columns: 1fr;
+          }
+
+          .chart-option-content {
+            padding: 20px;
+          }
+        }
+      `}</style>
     </div>
   );
 };

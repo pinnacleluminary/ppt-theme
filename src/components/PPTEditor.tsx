@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Save, Settings, BarChart2, Palette } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Plus, ChevronLeft, ChevronRight, Save, Settings, 
+  BarChart2, Palette, Layout, Monitor, Trash2
+} from 'lucide-react';
 import { ChartData } from './charts/ChartTypes';
 import { DEFAULT_CHART_DATA } from './charts/ChartConstants';
 import { ChartModal } from './charts/ChartModal';
-import { ChartDisplay } from './charts/ChartDisplay';
 import { ChartEditor } from './charts/ChartEditor';
 import { ChartToolbar } from './charts/ChartToolbar';
 import { defaultThemeColors, ThemeColorPicker } from './ThemeColorPicker';
 import { ThemeFontsManager } from './ThemeFontsManager';
 import { ThemeFonts } from './ThemeFontsEditor';
+import { PresentationSettings } from './PPTTypes';
 
 // Types
 interface Slide {
@@ -80,16 +83,23 @@ const predefinedThemes: Theme[] = [
 ];
 
 interface PPTEditorProps {
+  onSettingsChange?: (settings: PresentationSettings) => void;
+  initialSettings?: PresentationSettings | null;
   currentTheme?: {
     colors: ThemeColors;
   };
 }
 
-const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
+
+const PPTEditor: React.FC<PPTEditorProps> = ({ 
+  onSettingsChange,
+  initialSettings,
+  currentTheme: providedTheme 
+}) => {
   // Predefined slide sizes
   const slideSizes: SlideSize[] = [
-    { name: 'Standard (4:3)', width: '560px', height: '420px' },
-    { name: 'Widescreen (16:9)', width: '672px', height: '378px' },
+    { name: 'Standard (4:3)', width: '800px', height: '600px' },
+    { name: 'Widescreen (16:9)', width: '1600px', height: '900px' },
     { name: 'Custom', width: '100%', height: 'auto' }
   ];
 
@@ -115,8 +125,40 @@ const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [themes, setThemes] = useState<Theme[]>(predefinedThemes);
   const [themeFonts, setThemeFonts] = useState<ThemeFonts[]>([]);
+  
+  useEffect(() => {
+    if (onSettingsChange) {
+      const currentSettings: PresentationSettings = {
+        theme: {
+          name: currentTheme.name,
+          background: currentTheme.background,
+          titleColor: currentTheme.titleColor,
+          contentColor: currentTheme.contentColor,
+          colors: currentTheme.colors
+        },
+        slideSize: currentSize,
+        fonts: {
+          titleFont: slides[currentSlide]?.titleFont || 'Arial',
+          bodyFont: slides[currentSlide]?.bodyFont || 'Calibri'
+        },
+        slides: slides
+      };
+
+      onSettingsChange(currentSettings);
+    }
+  }, [
+    slides, 
+    currentTheme, 
+    currentSize, 
+    currentSlide, 
+    onSettingsChange
+  ]);
+  
 
   const themeColors = currentTheme?.colors || defaultThemeColors;
+
+
+  
   // Handlers
   const addNewSlide = () => {
     const newSlide: Slide = {
@@ -257,203 +299,212 @@ const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
   };
 
   return (
-    <div className="container-fluid">
-      <div className="row p-3">
-        {/* Main Toolbar */}
-        <div className="col-12 mb-3">
-          <div className="btn-group me-2">
-            <button 
-              className="btn btn-outline-primary"
-              onClick={() => navigateSlide('prev')} 
-              disabled={currentSlide === 0}
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button 
-              className="btn btn-outline-primary"
-              onClick={() => navigateSlide('next')} 
-              disabled={currentSlide === slides.length - 1}
-            >
-              <ChevronRight size={16} />
-            </button>
-            <button 
-              className="btn btn-primary"
-              onClick={addNewSlide}
-            >
-              <Plus size={16} /> Add Slide
-            </button>
-            <button 
-              className="btn btn-success"
-              onClick={savePresentation}
-            >
-              <Save size={16} /> Save
-            </button>
-          </div>
-          
-          <div className="btn-group ms-2">
-            <button 
-              className="btn btn-info"
-              onClick={() => setShowCustomize(!showCustomize)}
-            >
-              <Settings size={16} /> Customize
-            </button>
-            <button 
-              className="btn btn-info"
-              onClick={() => setShowChartModal(true)}
-            >
-              <BarChart2 size={16} /> Chart
-            </button>
-            <button 
-              className="btn btn-info"
-              onClick={() => setShowThemeModal(true)}
-            >
-              <Palette size={16} /> Theme Colors
-            </button>
-            <ThemeFontsManager
-  onThemeFontsChange={setThemeFonts}
-  onApplyFonts={applyFonts}
-  initialThemeFonts={themeFonts}
-/>
-          </div>
+    <div className="ppt-editor">
+      <div className="editor-toolbar">
+        <div className="toolbar-section">
+          <button 
+            className="toolbar-btn"
+            onClick={() => navigateSlide('prev')} 
+            disabled={currentSlide === 0}
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <span className="slide-counter">
+            {currentSlide + 1} / {slides.length}
+          </span>
+          <button 
+            className="toolbar-btn"
+            onClick={() => navigateSlide('next')} 
+            disabled={currentSlide === slides.length - 1}
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
 
-        {/* Customization Panel */}
-        {showCustomize && (
-          <div className="col-12 mb-3">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Customize Presentation</h5>
-                <div className="row">
-                  {/* Themes */}
-                  <div className="col-md-4">
-                    <h6>Themes</h6>
-                    <div className="d-flex flex-wrap gap-2">
-                      {themes.map((theme) => (
-                        <button
-                          key={theme.name}
-                          className={`btn ${currentTheme.name === theme.name ? 'btn-primary' : 'btn-outline-primary'}`}
-                          onClick={() => applyTheme(theme)}
-                        >
-                          {theme.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Slide Size */}
-                  <div className="col-md-4">
-                    <h6>Slide Size</h6>
-                    <select 
-                      className="form-select"
-                      value={currentSize.name}
-                      onChange={(e) => {
-                        const size = slideSizes.find(s => s.name === e.target.value);
-                        if (size) setCurrentSize(size);
-                      }}
-                    >
-                      {slideSizes.map((size) => (
-                        <option key={size.name} value={size.name}>
-                          {size.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+        <div className="toolbar-section">
+          <button 
+            className="toolbar-btn primary"
+            onClick={addNewSlide}
+          >
+            <Plus size={20} />
+            <span>New Slide</span>
+          </button>
+          <button 
+            className="toolbar-btn success"
+            onClick={savePresentation}
+          >
+            <Save size={20} />
+            <span>Save</span>
+          </button>
+        </div>
 
-                  {/* Background Color */}
-                  <div className="col-md-4">
-                    <h6>Background Color</h6>
-                    <input
-                      type="color"
-                      className="form-control form-control-color"
-                      value={customBackground}
-                      onChange={(e) => updateSlideBackground(e.target.value)}
-                    />
-                  </div>
-                </div>
+        <div className="toolbar-section">
+          <button 
+            className={`toolbar-btn ${showCustomize ? 'active' : ''}`}
+            onClick={() => setShowCustomize(!showCustomize)}
+          >
+            <Settings size={20} />
+            <span>Settings</span>
+          </button>
+          <button 
+            className="toolbar-btn"
+            onClick={() => setShowChartModal(true)}
+          >
+            <BarChart2 size={20} />
+            <span>Chart</span>
+          </button>
+          <button 
+            className="toolbar-btn"
+            onClick={() => setShowThemeModal(true)}
+          >
+            <Palette size={20} />
+            <span>Theme</span>
+          </button>
+          <ThemeFontsManager
+            onThemeFontsChange={setThemeFonts}
+            onApplyFonts={applyFonts}
+            initialThemeFonts={themeFonts}
+          />
+        </div>
+      </div>
+
+      {showCustomize && (
+        <div className="settings-panel">
+          <div className="settings-content">
+            <div className="settings-section">
+              <h6>Presentation Theme</h6>
+              <div className="theme-grid">
+                {themes.map((theme) => (
+                  <button
+                    key={theme.name}
+                    className={`theme-btn ${currentTheme.name === theme.name ? 'active' : ''}`}
+                    onClick={() => applyTheme(theme)}
+                    style={{
+                      backgroundColor: theme.background,
+                      color: theme.titleColor
+                    }}
+                  >
+                    <div className="theme-preview">
+                      <div className="theme-title" style={{ color: theme.titleColor }}>
+                        {theme.name}
+                      </div>
+                      <div className="theme-content" style={{ color: theme.contentColor }}>
+                        Sample Text
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="settings-section">
+              <h6>Slide Size</h6>
+              <div className="size-options">
+                {slideSizes.map((size) => (
+                  <button
+                    key={size.name}
+                    className={`size-btn ${currentSize.name === size.name ? 'active' : ''}`}
+                    onClick={() => setCurrentSize(size)}
+                  >
+                    <Monitor size={20} />
+                    <span>{size.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="settings-section">
+              <h6>Background Color</h6>
+              <div className="color-picker">
+                <input
+                  type="color"
+                  value={customBackground}
+                  onChange={(e) => updateSlideBackground(e.target.value)}
+                />
+                <span>{customBackground.toUpperCase()}</span>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Main Content Area */}
-        <div className="col-3">
-          <div className="list-group">
-            {slides.map((slide, index) => (
-              <button
-                key={slide.id}
-                className={`list-group-item list-group-item-action ${
-                  index === currentSlide ? 'active' : ''
-                }`}
-                onClick={() => setCurrentSlide(index)}
+      <div className="editor-content">
+        <div className="slides-sidebar">
+          {slides.map((slide, index) => (
+            <div
+              key={slide.id}
+              className={`slide-thumbnail ${index === currentSlide ? 'active' : ''}`}
+              onClick={() => setCurrentSlide(index)}
+            >
+              <div 
+                className="thumbnail-preview"
                 style={{
                   backgroundColor: slide.background,
-                  color: slide.titleColor
                 }}
               >
-                Slide {slide.id}
-              </button>
-            ))}
-          </div>
+                <div className="thumbnail-content" style={{ color: slide.titleColor }}>
+                  <div className="thumbnail-title">{slide.title}</div>
+                  <div className="thumbnail-text" style={{ color: slide.contentColor }}>
+                    {slide.content.substring(0, 50)}...
+                  </div>
+                </div>
+              </div>
+              <div className="thumbnail-number">Slide {index + 1}</div>
+            </div>
+          ))}
         </div>
 
-        {/* Main Editor */}
-        <div className="col-9">
+        <div className="slide-editor">
           <div 
-            className="card"
+            className="slide-container"
             style={{
               width: currentSize.width,
               height: currentSize.height,
-              margin: '0 auto'
             }}
           >
             <div 
-              className="card-body"
+              className="slide-content"
               style={{
                 backgroundColor: slides[currentSlide].background,
-                transition: 'background-color 0.3s ease'
               }}
             >
               <input
-  type="text"
-  className="form-control mb-3"
-  value={slides[currentSlide].title}
-  onChange={(e) => updateSlideTitle(e.target.value)}
-  placeholder="Slide Title"
-  style={{
-    color: slides[currentSlide].titleColor,
-    backgroundColor: 'transparent',
-    border: '1px solid rgba(0,0,0,0.1)',
-    fontFamily: slides[currentSlide].titleFont || 'inherit' // Add this
-  }}
-/>
-<textarea
-  className="form-control mb-3"
-  rows={5}
-  value={slides[currentSlide].content}
-  onChange={(e) => updateSlideContent(e.target.value)}
-  placeholder="Slide Content"
-  style={{
-    color: slides[currentSlide].contentColor,
-    backgroundColor: 'transparent',
-    border: '1px solid rgba(0,0,0,0.1)',
-    fontFamily: slides[currentSlide].bodyFont || 'inherit' // Add this
-  }}
-/>
-              {/* Charts */}
-              {slides[currentSlide].charts.map((chart) => (
-                <ChartEditor
-                  key={chart.id}
-                  chartData={chart}
-                  onUpdate={(updatedChart) => updateChart(chart.id, updatedChart)}
-                  onDelete={() => deleteChart(chart.id)}
-                  themeColors={themeColors}
-                />
-              ))}
+                type="text"
+                className="slide-title"
+                value={slides[currentSlide].title}
+                onChange={(e) => updateSlideTitle(e.target.value)}
+                placeholder="Click to add title"
+                style={{
+                  color: slides[currentSlide].titleColor,
+                  fontFamily: slides[currentSlide].titleFont || 'inherit'
+                }}
+              />
+              <textarea
+                className="slide-body"
+                value={slides[currentSlide].content}
+                onChange={(e) => updateSlideContent(e.target.value)}
+                placeholder="Click to add content"
+                style={{
+                  color: slides[currentSlide].contentColor,
+                  fontFamily: slides[currentSlide].bodyFont || 'inherit'
+                }}
+              />
+              
+              <div className="charts-container">
+                {slides[currentSlide].charts.map((chart) => (
+                  <ChartEditor
+                    key={chart.id}
+                    chartData={chart}
+                    onUpdate={(updatedChart) => updateChart(chart.id, updatedChart)}
+                    onDelete={() => deleteChart(chart.id)}
+                    themeColors={themeColors}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-      
 
       {/* Modals */}
       <ThemeColorPicker
@@ -466,6 +517,285 @@ const PPTEditor: React.FC<PPTEditorProps> = ({ currentTheme: any }) => {
         onClose={() => setShowChartModal(false)}
         onSelectChart={addChart}
       />
+
+      <style>{`
+        .ppt-editor {
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          background-color: #f8f9fa;
+        }
+
+        .editor-toolbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem;
+          background: white;
+          border-bottom: 1px solid #e2e8f0;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .toolbar-section {
+          display: flex;
+          align-items: center;
+        }
+
+        .toolbar-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 0.5rem;
+          background: white;
+          color: #4a5568;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .toolbar-btn:hover {
+          background: #f7fafc;
+          border-color: #cbd5e0;
+        }
+
+        .toolbar-btn.active {
+          background: #ebf8ff;
+          border-color: #4299e1;
+          color: #2b6cb0;
+        }
+
+        .toolbar-btn.primary {
+          background: #4472C4;
+          border-color: #4472C4;
+          color: white;
+        }
+
+        .toolbar-btn.success {
+          background: #48bb78;
+          border-color: #48bb78;
+          color: white;
+        }
+
+        .toolbar-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .slide-counter {
+          padding: 0.25rem 0.75rem;
+          background: #f7fafc;
+          border-radius: 0.375rem;
+          color: #4a5568;
+          font-size: 0.875rem;
+        }
+
+        .settings-panel {
+          padding: 1rem;
+          background: white;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        .settings-content {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 2rem;
+        }
+
+        .settings-section {
+          padding: 1rem;
+        }
+
+        .settings-section h6 {
+          margin-bottom: 1rem;
+          color: #2d3748;
+          font-weight: 600;
+        }
+
+        .theme-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 1rem;
+        }
+
+        .theme-btn {
+          padding: 1rem;
+          border: 2px solid transparent;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .theme-btn.active {
+          border-color: #4472C4;
+        }
+
+        .theme-preview {
+          height: 100px;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .size-options {
+          display: inline-grid;
+          gap: 1rem;
+        }
+
+        .size-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 0.5rem;
+          background: white;
+          cursor: pointer;
+          transition: all 0.2s;
+          color: #212529;
+        }
+
+        .size-btn.active {
+          background: #ebf8ff;
+          border-color: #4299e1;
+          color: #2b6cb0;
+        }
+
+        .color-picker {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .color-picker input {
+          width: 50px;
+          height: 50px;
+          padding: 0;
+          border: none;
+          border-radius: 0.375rem;
+          cursor: pointer;
+        }
+
+        .editor-content {
+          display: flex;
+          flex: 1;
+          overflow: hidden;
+        }
+
+        .slides-sidebar {
+          width: 250px;
+          padding: 1rem;
+          background: white;
+          border-right: 1px solid #e2e8f0;
+          overflow-y: auto;
+        }
+
+        .slide-thumbnail {
+          margin-bottom: 1rem;
+          cursor: pointer;
+          border-radius: 0.5rem;
+          overflow: hidden;
+          transition: all 0.2s;
+        }
+
+        .slide-thumbnail.active {
+          box-shadow: 0 0 0 2px #4472C4;
+        }
+
+        .thumbnail-preview {
+          aspect-ratio: 16/9;
+          padding: 1rem;
+        }
+
+        .thumbnail-content {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .thumbnail-title {
+          font-weight: 600;
+          font-size: 0.875rem;
+        }
+
+        .thumbnail-text {
+          font-size: 0.75rem;
+          opacity: 0.8;
+        }
+
+        .thumbnail-number {
+          padding: 0.5rem;
+          background: #f7fafc;
+          font-size: 0.75rem;
+          text-align: center;
+          color: #4a5568;
+        }
+
+        .slide-editor {
+          flex: 1;
+          padding: 2rem;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          overflow-y: auto;
+        }
+
+        .slide-container {
+          background: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+
+        .slide-content {
+          height: 100%;
+          padding: 2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .slide-title {
+          width: 100%;
+          padding: 0.5rem;
+          border: none;
+          background: transparent;
+          font-size: 2rem;
+          font-weight: 600;
+        }
+
+        .slide-body {
+          flex: 1;
+          width: 100%;
+          padding: 0.5rem;
+          border: none;
+          background: transparent;
+          resize: none;
+          font-size: 1.25rem;
+        }
+
+        .charts-container {
+          display: grid;
+          gap: 1rem;
+          margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+          .editor-toolbar {
+            flex-wrap: wrap;
+            gap: 1rem;
+          }
+
+          .settings-content {
+            grid-template-columns: 1fr;
+          }
+
+          .slides-sidebar {
+            width: 200px;
+          }
+        }
+      `}</style>
     </div>
   );
 };
