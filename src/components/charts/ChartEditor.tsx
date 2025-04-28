@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Edit2, Plus, Trash2 } from 'lucide-react';
 import { ChartData, ThemeColors } from './ChartTypes';
 import { ChartDisplay } from './ChartDisplay';
+import './ChartEditor.css';
 
 interface ChartEditorProps {
   chartData: ChartData;
