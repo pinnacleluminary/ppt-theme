@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, ChevronLeft, ChevronRight, Save, Settings, 
-  BarChart2, Palette, Layout, Monitor, Trash2
+  BarChart2, Palette, Layout, Monitor, Trash2, Edit2, Check
 } from 'lucide-react';
 import { ChartData } from './charts/ChartTypes';
 import { DEFAULT_CHART_DATA } from './charts/ChartConstants';
@@ -13,6 +13,7 @@ import { ThemeFontsManager } from './ThemeFontsManager';
 import { ThemeFonts } from './ThemeFontsEditor';
 import { PresentationSettings } from './PPTTypes';
 import './PPTEditor.css';
+import SlideSettingsModal from './SlideSettingsModal';
 
 // Types
 interface Slide {
@@ -54,6 +55,11 @@ interface ThemeColors {
   accent6: string;
   hyperlink: string;
   followedHyperlink: string;
+}
+
+interface EditingState {
+  slideId: number | null;
+  field: 'title' | 'content' | null;
 }
 
 const predefinedThemes: Theme[] = [
@@ -106,16 +112,102 @@ const PPTEditor: React.FC<PPTEditorProps> = ({
 
 
   const [slides, setSlides] = useState<Slide[]>([
-    {
-      id: 1,
-      content: 'Your content here...',
-      title: 'Title 1',
-      background: predefinedThemes[0].background,
-      titleColor: predefinedThemes[0].titleColor,
-      contentColor: predefinedThemes[0].contentColor,
-      charts: []
-    }
-  ]);
+  {
+    id: 1,
+    title: "Title 1",
+    content: "This slide demonstrates the first theme with bar, line, and pie charts showing various data visualizations.",
+    background: predefinedThemes[0].background,
+    titleColor: predefinedThemes[0].titleColor,
+    contentColor: predefinedThemes[0].contentColor,
+    charts: [
+      {
+        id: 'theme1-bar-chart',
+        type: 'bar',
+        title: 'Sales Performance',
+        data: [
+          { name: 'Q1', Series1: 65, Series2: 45 },
+          { name: 'Q2', Series1: 45, Series2: 55 },
+          { name: 'Q3', Series1: 75, Series2: 35 },
+          { name: 'Q4', Series1: 55, Series2: 65 }
+        ]
+      },
+      {
+        id: 'theme1-line-chart',
+        type: 'line',
+        title: 'Monthly Trends',
+        data: [
+          { name: 'Jan', Series1: 30, Series2: 40 },
+          { name: 'Feb', Series1: 45, Series2: 50 },
+          { name: 'Mar', Series1: 55, Series2: 45 },
+          { name: 'Apr', Series1: 60, Series2: 65 },
+          { name: 'May', Series1: 75, Series2: 70 }
+        ]
+      },
+      {
+        id: 'theme1-pie-chart',
+        type: 'pie',
+        title: 'Market Distribution',
+        data: [
+          { name: 'Product A', value: 35 },
+          { name: 'Product B', value: 25 },
+          { name: 'Product C', value: 20 },
+          { name: 'Product D', value: 15 },
+          { name: 'Product E', value: 5 }
+        ]
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: "Title 2",
+    content: "This slide showcases the second theme with alternative styling for bar, line, and pie charts.",
+    background: predefinedThemes[1].background,
+    titleColor: predefinedThemes[1].titleColor,
+    contentColor: predefinedThemes[1].contentColor,
+    charts: [
+      {
+        id: 'theme2-bar-chart',
+        type: 'bar',
+        title: 'Revenue Analysis',
+        data: [
+          { name: 'Region A', Series1: 85, Series2: 65 },
+          { name: 'Region B', Series1: 55, Series2: 75 },
+          { name: 'Region C', Series1: 95, Series2: 85 },
+          { name: 'Region D', Series1: 75, Series2: 95 }
+        ]
+      },
+      {
+        id: 'theme2-line-chart',
+        type: 'line',
+        title: 'Growth Trajectory',
+        data: [
+          { name: 'Week 1', Series1: 20, Series2: 30 },
+          { name: 'Week 2', Series1: 35, Series2: 40 },
+          { name: 'Week 3', Series1: 45, Series2: 35 },
+          { name: 'Week 4', Series1: 50, Series2: 55 },
+          { name: 'Week 5', Series1: 65, Series2: 60 }
+        ]
+      },
+      {
+        id: 'theme2-pie-chart',
+        type: 'pie',
+        title: 'Budget Allocation',
+        data: [
+          { name: 'Marketing', value: 30 },
+          { name: 'R&D', value: 25 },
+          { name: 'Operations', value: 20 },
+          { name: 'Sales', value: 15 },
+          { name: 'Admin', value: 10 }
+        ]
+      }
+    ]
+  }
+]);
+
+  
+  
+  
+  
   
   const [showChartModal, setShowChartModal] = useState(false);
   const [currentSlide, setCurrentSlide] = useState<number>(0);
@@ -126,6 +218,9 @@ const PPTEditor: React.FC<PPTEditorProps> = ({
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [themes, setThemes] = useState<Theme[]>(predefinedThemes);
   const [themeFonts, setThemeFonts] = useState<ThemeFonts[]>([]);
+
+  const [showSlideSettingsModal, setShowSlideSettingsModal] = useState(false);
+  const [editingSlideId, setEditingSlideId] = useState<number | null>(null);
   
   useEffect(() => {
     if (onSettingsChange) {
@@ -158,31 +253,98 @@ const PPTEditor: React.FC<PPTEditorProps> = ({
 
   const themeColors = currentTheme?.colors || defaultThemeColors;
 
+const [editingState, setEditingState] = useState<EditingState>({
+    slideId: null,
+    field: null
+  });
 
+  const handleEdit = (slideId: number) => {
+    setEditingSlideId(slideId);
+    setShowSlideSettingsModal(true);
+  };
+
+  const handleCreateNew = () => {
+    setEditingSlideId(null);
+    setShowSlideSettingsModal(true);
+  };
+
+  const handleFieldEdit = (field: 'title' | 'content') => {
+    setEditingState(prev => ({ ...prev, field }));
+  };
+
+  const handleFieldSave = () => {
+    setEditingState({ slideId: null, field: null });
+  };
+
+  const updateSlideContent = (slideId: number, field: 'title' | 'content', value: string) => {
+    setSlides(slides.map(slide => 
+      slide.id === slideId 
+        ? { ...slide, [field]: value }
+        : slide
+    ));
+  };
   
   // Handlers
   const addNewSlide = () => {
-    const newSlide: Slide = {
-      id: slides.length + 1,
-      content: 'New slide content...',
-      title: `Title ${slides.length + 1}`,
-      background: currentTheme.background,
-      titleColor: currentTheme.titleColor,
-      contentColor: currentTheme.contentColor,
-      charts: []
-    };
-    setSlides([...slides, newSlide]);
-    setCurrentSlide(slides.length);
+  const theme1Content = slides[0]; // Get the first theme's content
+  const newSlide: Slide = {
+    id: slides.length + 1,
+    title: `Title ${slides.length + 1}`,
+    content: "This slide demonstrates the theme with bar, line, and pie charts showing various data visualizations.",
+    background: theme1Content.background,
+    titleColor: theme1Content.titleColor,
+    contentColor: theme1Content.contentColor,
+    charts: [
+      {
+        id: `theme1-bar-chart-${slides.length + 1}`,
+        type: 'bar',
+        title: 'Sales Performance',
+        data: [
+          { name: 'Q1', Series1: 65, Series2: 45 },
+          { name: 'Q2', Series1: 45, Series2: 55 },
+          { name: 'Q3', Series1: 75, Series2: 35 },
+          { name: 'Q4', Series1: 55, Series2: 65 }
+        ]
+      },
+      {
+        id: `theme1-line-chart-${slides.length + 1}`,
+        type: 'line',
+        title: 'Monthly Trends',
+        data: [
+          { name: 'Jan', Series1: 30, Series2: 40 },
+          { name: 'Feb', Series1: 45, Series2: 50 },
+          { name: 'Mar', Series1: 55, Series2: 45 },
+          { name: 'Apr', Series1: 60, Series2: 65 },
+          { name: 'May', Series1: 75, Series2: 70 }
+        ]
+      },
+      {
+        id: `theme1-pie-chart-${slides.length + 1}`,
+        type: 'pie',
+        title: 'Market Distribution',
+        data: [
+          { name: 'Product A', value: 35 },
+          { name: 'Product B', value: 25 },
+          { name: 'Product C', value: 20 },
+          { name: 'Product D', value: 15 },
+          { name: 'Product E', value: 5 }
+        ]
+      }
+    ]
   };
+  setSlides([...slides, newSlide]);
+  setCurrentSlide(slides.length);
+};
 
-  const updateSlideContent = (content: string) => {
-    const updatedSlides = [...slides];
-    updatedSlides[currentSlide] = {
-      ...updatedSlides[currentSlide],
-      content
-    };
-    setSlides(updatedSlides);
-  };
+
+  // const updateSlideContent = (content: string) => {
+  //   const updatedSlides = [...slides];
+  //   updatedSlides[currentSlide] = {
+  //     ...updatedSlides[currentSlide],
+  //     content
+  //   };
+  //   setSlides(updatedSlides);
+  // };
 
   const updateSlideTitle = (title: string) => {
     const updatedSlides = [...slides];
@@ -323,13 +485,13 @@ const PPTEditor: React.FC<PPTEditorProps> = ({
         </div>
 
         <div className="toolbar-section">
-          <button 
+          {/* <button 
             className="toolbar-btn primary"
             onClick={addNewSlide}
           >
             <Plus size={20} />
             <span>New Slide</span>
-          </button>
+          </button> */}
           <button 
             className="toolbar-btn success"
             onClick={savePresentation}
@@ -347,13 +509,13 @@ const PPTEditor: React.FC<PPTEditorProps> = ({
             <Settings size={20} />
             <span>Settings</span>
           </button>
-          <button 
+          {/* <button 
             className="toolbar-btn"
             onClick={() => setShowChartModal(true)}
           >
             <BarChart2 size={20} />
             <span>Chart</span>
-          </button>
+          </button> */}
           <button 
             className="toolbar-btn"
             onClick={() => setShowThemeModal(true)}
@@ -431,80 +593,153 @@ const PPTEditor: React.FC<PPTEditorProps> = ({
 
       <div className="editor-content">
         <div className="slides-sidebar">
-          {slides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className={`slide-thumbnail ${index === currentSlide ? 'active' : ''}`}
-              onClick={() => setCurrentSlide(index)}
-            >
-              <div 
-                className="thumbnail-preview"
-                style={{
-                  backgroundColor: slide.background,
-                }}
-              >
-                <div className="thumbnail-content" style={{ color: slide.titleColor }}>
-                  <div className="thumbnail-title">{slide.title}</div>
-                  <div className="thumbnail-text" style={{ color: slide.contentColor }}>
-                    {slide.content.substring(0, 50)}...
-                  </div>
-                </div>
-              </div>
-              <div className="thumbnail-number">Slide {index + 1}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="slide-editor">
+          {/* New Slide button remains the same */}
+        <div className="slide-thumbnail new-slide-thumbnail" onClick={addNewSlide}>
           <div 
-            className="slide-container"
+            className="thumbnail-preview"
             style={{
-              width: currentSize.width,
-              height: currentSize.height,
+              backgroundColor: currentTheme.background,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
-            <div 
-              className="slide-content"
-              style={{
-                backgroundColor: slides[currentSlide].background,
-              }}
-            >
-              <input
-                type="text"
-                className="slide-title"
-                value={slides[currentSlide].title}
-                onChange={(e) => updateSlideTitle(e.target.value)}
-                placeholder="Click to add title"
-                style={{
-                  color: slides[currentSlide].titleColor,
-                  fontFamily: slides[currentSlide].titleFont || 'inherit'
-                }}
-              />
-              <textarea
-                className="slide-body"
-                value={slides[currentSlide].content}
-                onChange={(e) => updateSlideContent(e.target.value)}
-                placeholder="Click to add content"
-                style={{
-                  color: slides[currentSlide].contentColor,
-                  fontFamily: slides[currentSlide].bodyFont || 'inherit'
-                }}
-              />
-              
-              <div className="charts-container">
-                {slides[currentSlide].charts.map((chart) => (
-                  <ChartEditor
-                    key={chart.id}
-                    chartData={chart}
-                    onUpdate={(updatedChart) => updateChart(chart.id, updatedChart)}
-                    onDelete={() => deleteChart(chart.id)}
-                    themeColors={themeColors}
-                  />
-                ))}
-              </div>
+            <div className="new-slide-content">
+              <Plus size={20} style={{ color: currentTheme.titleColor }} />
+              <span className="thumbnail-title" style={{ color: currentTheme.titleColor }}>
+                Create New
+              </span>
             </div>
           </div>
         </div>
+
+        {slides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`slide-thumbnail ${index === currentSlide ? 'active' : ''}`}
+          >
+            <div 
+              className="thumbnail-preview"
+              style={{
+                backgroundColor: slide.background,
+                cursor: editingState.slideId === slide.id ? 'default' : 'pointer',
+              }}
+              onClick={() => {
+                if (editingState.slideId !== slide.id) {
+                  setCurrentSlide(index);
+                }
+              }}
+            >
+            <div 
+              className="thumbnail-content" 
+              style={{ color: slide.titleColor }}
+              data-editing={editingState.slideId === slide.id}
+            >
+              {editingState.slideId === slide.id && editingState.field === 'title' ? (
+                <input
+                  type="text"
+                  value={slide.title}
+                  onChange={(e) => updateSlideContent(slide.id, 'title', e.target.value)}
+                  className="edit-input title-input"
+                  autoFocus
+                  onBlur={handleFieldSave}
+                  onKeyPress={(e) => e.key === 'Enter' && handleFieldSave()}
+                />
+              ) : (
+                <div className="thumbnail-title">
+                  {slide.title}
+                </div>
+              )}
+              
+              {editingState.slideId === slide.id && editingState.field === 'content' ? (
+                <textarea
+                  value={slide.content}
+                  onChange={(e) => updateSlideContent(slide.id, 'content', e.target.value)}
+                  className="edit-input content-input"
+                  autoFocus
+                  onBlur={handleFieldSave}
+                />
+              ) : (
+                <div className="thumbnail-text" style={{ color: slide.contentColor }}>
+                  {slide.content.substring(0, 50)}...
+                </div>
+              )}
+            </div>
+
+            </div>
+            <div className="thumbnail-footer">
+              <div className="thumbnail-number">Theme {index + 1}</div>
+              {editingState.slideId === slide.id ? (
+                <button 
+                  className="edit-button active"
+                  onClick={handleFieldSave}
+                >
+                  <Check size={16} />
+                </button>
+              ) : (
+                <button 
+                  className="edit-button"
+                  onClick={() => handleEdit(slide.id)}
+                >
+                  <Edit2 size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+    </div>
+
+        <div className="slide-editor">
+  <div 
+    className="slide-container"
+    style={{
+      width: currentSize.width,
+    }}
+  >
+    <div 
+      className="slide-content"
+      style={{
+        backgroundColor: slides[currentSlide].background,
+      }}
+    >
+      <input
+        type="text"
+        className="slide-title"
+        value={slides[currentSlide].title}
+        onChange={(e) => updateSlideTitle(e.target.value)}
+        placeholder="Click to add title"
+        style={{
+          color: slides[currentSlide].titleColor,
+          fontFamily: slides[currentSlide].titleFont || 'inherit'
+        }}
+        readOnly={editingState.slideId !== slides[currentSlide].id}
+      />
+      <textarea
+        className="slide-body"
+        value={slides[currentSlide].content}
+        onChange={(e) => updateSlideContent(slides[currentSlide].id, 'content', e.target.value)}
+        placeholder="Click to add content"
+        style={{
+          color: slides[currentSlide].contentColor,
+          fontFamily: slides[currentSlide].bodyFont || 'inherit'
+        }}
+        readOnly={editingState.slideId !== slides[currentSlide].id}
+      />
+      
+      <div className="charts-container">
+        {slides[currentSlide].charts.map((chart) => (
+          <ChartEditor
+            key={chart.id}
+            chartData={chart}
+            onUpdate={(updatedChart) => updateChart(chart.id, updatedChart)}
+            onDelete={() => deleteChart(chart.id)}
+            themeColors={themeColors}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
       </div>
 
       {/* Modals */}
@@ -517,6 +752,36 @@ const PPTEditor: React.FC<PPTEditorProps> = ({
         isOpen={showChartModal}
         onClose={() => setShowChartModal(false)}
         onSelectChart={addChart}
+      />
+      <SlideSettingsModal
+        isOpen={showSlideSettingsModal}
+        onClose={() => setShowSlideSettingsModal(false)}
+        onSave={(settings) => {
+          // Handle save logic here
+          if (editingSlideId === null) {
+            // Create new slide
+            const newSlide: Slide = {
+              id: slides.length + 1,
+              ...settings.general,
+              ...settings.colors,
+              ...settings.fonts,
+              charts: []
+            };
+            setSlides([...slides, newSlide]);
+            setCurrentSlide(slides.length);
+          } else {
+            // Update existing slide
+            const updatedSlides = slides.map(slide =>
+              slide.id === editingSlideId
+                ? { ...slide, ...settings.general, ...settings.colors, ...settings.fonts }
+                : slide
+            );
+            setSlides(updatedSlides);
+          }
+          setShowSlideSettingsModal(false);
+        }}
+        initialSlide={editingSlideId ? slides.find(s => s.id === editingSlideId) : undefined}
+        mode={editingSlideId ? 'edit' : 'create'}
       />
     </div>
   );

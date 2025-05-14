@@ -91,14 +91,14 @@ export const ChartEditor: React.FC<ChartEditorProps> = ({
                     />
                   </td>
                 ))}
-                <td className="text-center">
+                {/* <td className="text-center">
                   <button
                     className="btn btn-outline-danger btn-sm"
                     onClick={() => deleteRow(rowIndex)}
                   >
                     <Trash2 size={14} />
                   </button>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>
@@ -135,12 +135,12 @@ export const ChartEditor: React.FC<ChartEditorProps> = ({
             >
               <Edit2 size={16} />
             </button> */}
-            <button
+            {/* <button
               className="btn btn-outline-danger btn-sm"
               onClick={onDelete}
             >
               <X size={16} />
-            </button>
+            </button> */}
           </div>
         </div>
 

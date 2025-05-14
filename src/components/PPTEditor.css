@@ -210,6 +210,62 @@
     text-align: center;
     color: #4a5568;
   }
+  .thumbnail-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #f0f0f0;
+}
+
+.edit-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.edit-button:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.edit-button.active {
+  background-color: #0066cc;
+  color: white;
+}
+
+.edit-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #0066cc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: inherit;
+  color: #333;
+}
+
+.title-input {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.content-input {
+  font-size: 12px;
+  resize: none;
+  height: 60px;
+}
+
+.thumbnail-content > div {
+  cursor: text;
+}
+
   
   .slide-editor {
     flex: 1;
@@ -243,6 +299,50 @@
     font-size: 2rem;
     font-weight: 600;
   }
+.slide-title[readonly],
+.slide-body[readonly] {
+  cursor: default;
+  pointer-events: none;
+  background: transparent;
+  border: none;
+}
+
+.slide-title:not([readonly]):hover,
+.slide-body:not([readonly]):hover {
+  border: 1px solid #0066cc;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.slide-title:not([readonly]):focus,
+.slide-body:not([readonly]):focus {
+  border: 2px solid #0066cc;
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+}
+
+.thumbnail-content[data-editing="false"] {
+  pointer-events: none;
+}
+
+.thumbnail-content[data-editing="true"] {
+  cursor: text;
+}
+
+.edit-button {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.edit-button:hover {
+  opacity: 1;
+}
+
+.edit-button.active {
+  opacity: 1;
+  background-color: #0066cc;
+  color: white;
+}
+
   
   .slide-body {
     flex: 1;

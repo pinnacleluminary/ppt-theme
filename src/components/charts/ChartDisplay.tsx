@@ -34,38 +34,40 @@ export const ChartDisplay: React.FC<ChartDisplayProps> = ({ chartData, themeColo
   const renderChart = () => {
     switch (type) {
       case 'bar':
-        default:
+        // Get series names excluding 'name' property
+        const barSeriesNames = Object.keys(data[0] || {}).filter(key => key !== 'name');
         return (
           <BarChart data={data}>
             <XAxis dataKey="name" stroke={themeColors.textDark1} />
             <YAxis stroke={themeColors.textDark1} />
             <Tooltip />
             <Legend />
-            {['series1', 'series2', 'series3'].map((series, index) => (
+            {barSeriesNames.map((series, index) => (
               <Bar
                 key={series}
                 dataKey={series}
-                name={`Series ${index + 1}`}
+                name={series}
                 fill={chartColors[index]}
-                stackId="stack"
               />
             ))}
           </BarChart>
         );
 
       case 'line':
+        // Get series names excluding 'name' property
+        const lineSeriesNames = Object.keys(data[0] || {}).filter(key => key !== 'name');
         return (
           <LineChart data={data}>
             <XAxis dataKey="name" stroke={themeColors.textDark1} />
             <YAxis stroke={themeColors.textDark1} />
             <Tooltip />
             <Legend />
-            {['series1', 'series2', 'series3'].map((series, index) => (
+            {lineSeriesNames.map((series, index) => (
               <Line
                 key={series}
                 type="monotone"
                 dataKey={series}
-                name={`Series ${index + 1}`}
+                name={series}
                 stroke={chartColors[index]}
                 strokeWidth={2}
                 dot={{ fill: chartColors[index] }}
@@ -97,7 +99,6 @@ export const ChartDisplay: React.FC<ChartDisplayProps> = ({ chartData, themeColo
             </Pie>
           </PieChart>
         );
-
     }
   };
 
