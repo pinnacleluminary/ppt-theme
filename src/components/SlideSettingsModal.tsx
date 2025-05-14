@@ -16,10 +16,6 @@ interface SlideSettingsModalProps {
 }
 
 interface SlideSettings {
-  general: {
-    title: string;
-    content: string;
-  };
   colors: {
     background: string;
     titleColor: string;
@@ -29,6 +25,11 @@ interface SlideSettings {
     titleFont: string;
     bodyFont: string;
   };
+  subSlides: Array<{
+    id: string;
+    title: string;
+    content: string;
+  }>;
 }
 
 const SlideSettingsModal: React.FC<SlideSettingsModalProps> = ({
@@ -41,10 +42,6 @@ const SlideSettingsModal: React.FC<SlideSettingsModalProps> = ({
     const [activeMenu, setActiveMenu] = useState<'general' | 'colors' | 'fonts'>('general');
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [settings, setSettings] = useState<SlideSettings>({
-        general: {
-        title: initialSlide?.title || '',
-        content: initialSlide?.content || ''
-        },
         colors: {
         background: initialSlide?.background || '#ffffff',
         titleColor: initialSlide?.titleColor || '#000000',
@@ -53,7 +50,12 @@ const SlideSettingsModal: React.FC<SlideSettingsModalProps> = ({
         fonts: {
         titleFont: initialSlide?.titleFont || 'Arial',
         bodyFont: initialSlide?.bodyFont || 'Calibri'
-        }
+        },
+        subSlides: initialSlide?.subSlides || [{
+        id: `new-${Date.now()}`,
+        title: '',
+        content: ''
+        }]
     });
 
     const [showWarning, setShowWarning] = useState(false);
@@ -101,7 +103,7 @@ const SlideSettingsModal: React.FC<SlideSettingsModalProps> = ({
   const updateSettings = (
     section: keyof SlideSettings,
     field: string,
-    value: string
+    value: string | any
   ) => {
     setSettings(prev => ({
       ...prev,
@@ -113,48 +115,113 @@ const SlideSettingsModal: React.FC<SlideSettingsModalProps> = ({
     setHasUnsavedChanges(true);
   };
 
+  const updateSubSlide = (index: number, field: string, value: string) => {
+    setSettings(prev => ({
+      ...prev,
+      subSlides: prev.subSlides.map((subSlide, i) => 
+        i === index ? { ...subSlide, [field]: value } : subSlide
+      )
+    }));
+    setHasUnsavedChanges(true);
+  };
+
+  const renderGeneralForm = () => (
+    <Form>
+      {settings.subSlides.map((subSlide, index) => (
+        <div key={subSlide.id}>
+          <Form.Group className="mb-3">
+            <Form.Label>Title</Form.Label>
+            <Form.Control
+              type="text"
+              value={subSlide.title}
+              onChange={(e) => updateSubSlide(index, 'title', e.target.value)}
+              placeholder="Enter slide title"
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Content</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={subSlide.content}
+              onChange={(e) => updateSubSlide(index, 'content', e.target.value)}
+              placeholder="Enter slide content"
+            />
+          </Form.Group>
+        </div>
+      ))}
+    </Form>
+  );
+
   if (!isOpen) return null;
 
   const renderPreview = () => (
-        <div className="preview-section">
+    <div className="preview-section">
+      <div 
+        className="preview-slide"
+        style={{
+          backgroundColor: settings.colors.background,
+        }}
+      >
+        {settings.subSlides.map((subSlide, index) => (
+          <div key={subSlide.id} className="slide-content-editable">
             <div 
-                className="preview-slide"
-                style={{
-                    backgroundColor: settings.colors.background,
-                }}
+              className="editable-title"
+              contentEditable
+              suppressContentEditableWarning
+              style={{
+                color: settings.colors.titleColor,
+                fontFamily: settings.fonts.titleFont,
+                fontSize: '24px',
+                marginBottom: '16px',
+                outline: 'none',
+                padding: '8px',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s'
+              }}
+              onBlur={(e) => updateSubSlide(index, 'title', e.currentTarget.textContent || '')}
+              onInput={(e) => {
+                setHasUnsavedChanges(true);
+              }}
             >
-                <h3 style={{
-                    color: settings.colors.titleColor,
-                    fontFamily: settings.fonts.titleFont
-                }}>
-                    {settings.general.title || 'Slide Title'}
-                </h3>
-                <p style={{
-                    color: settings.colors.contentColor,
-                    fontFamily: settings.fonts.bodyFont
-                }}>
-                    {settings.general.content || 'Slide content...'}
-                </p>
-                
-                <div className="charts-preview">
-                    {initialSlide?.charts.map((chart) => (
-                        <ChartEditor
-                            key={chart.id}
-                            chartData={chart}
-                            onUpdate={() => {}}
-                            onDelete={() => {}}
-                            themeColors={{
-                                ...defaultThemeColors,
-                                textDark1: settings.colors.titleColor,
-                                textLight1: settings.colors.background,
-                                textDark2: settings.colors.contentColor,
-                            }}
-                        />
-                    ))}
-                </div>
+              {subSlide.title || 'Click to edit title'}
             </div>
-        </div>
-    );
+            <div 
+              className="editable-content"
+              contentEditable
+              suppressContentEditableWarning
+              style={{
+                color: settings.colors.contentColor,
+                fontFamily: settings.fonts.bodyFont,
+                fontSize: '16px',
+                outline: 'none',
+                padding: '8px',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s',
+                minHeight: '100px'
+              }}
+              onBlur={(e) => updateSubSlide(index, 'content', e.currentTarget.textContent || '')}
+              onInput={(e) => {
+                setHasUnsavedChanges(true);
+              }}
+            >
+              {subSlide.content || 'Click to edit content'}
+            </div>
+            {initialSlide?.subSlides[index]?.chart && (
+              <ChartEditor
+                key={initialSlide.subSlides[index].chart.id}
+                chartData={initialSlide.subSlides[index].chart}
+                onUpdate={() => {}}
+                onDelete={() => {}}
+                themeColors={defaultThemeColors}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
 
   return (
         <>
@@ -165,145 +232,113 @@ const SlideSettingsModal: React.FC<SlideSettingsModalProps> = ({
                 className="settings-modal"
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>{mode === 'create' ? 'Create New Slide' : 'Edit Slide'}</Modal.Title>
+                <Modal.Title>{mode === 'create' ? 'Create New Slide' : 'Edit Slide'}</Modal.Title>
                 </Modal.Header>
 
                 <Modal.Body className="p-0">
-                    <div className="d-flex h-100">
-                        <Nav 
-                            className="flex-column settings-sidebar"
-                            variant="pills"
+                <div className="d-flex h-100">
+                    <Nav 
+                    className="flex-column settings-sidebar"
+                    variant="pills"
+                    >
+                    <Nav.Item>
+                        <Nav.Link 
+                        active={activeMenu === 'colors'}
+                        onClick={() => setActiveMenu('colors')}
                         >
-                            <Nav.Item>
-                                <Nav.Link 
-                                    active={activeMenu === 'general'}
-                                    onClick={() => setActiveMenu('general')}
-                                >
-                                    General
-                                </Nav.Link>
-                            </Nav.Item>
-                            <Nav.Item>
-                                <Nav.Link 
-                                    active={activeMenu === 'colors'}
-                                    onClick={() => setActiveMenu('colors')}
-                                >
-                                    Colors
-                                </Nav.Link>
-                            </Nav.Item>
-                            <Nav.Item>
-                                <Nav.Link 
-                                    active={activeMenu === 'fonts'}
-                                    onClick={() => setActiveMenu('fonts')}
-                                >
-                                    Fonts
-                                </Nav.Link>
-                            </Nav.Item>
-                        </Nav>
+                        Colors
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link 
+                        active={activeMenu === 'fonts'}
+                        onClick={() => setActiveMenu('fonts')}
+                        >
+                        Fonts
+                        </Nav.Link>
+                    </Nav.Item>
+                    </Nav>
 
-                        <div className="settings-main flex-grow-1 p-3">
-                            {renderPreview()}
+                    <div className="settings-main flex-grow-1 p-3">
+                    {renderPreview()}
 
-                            <div className="settings-form mt-4">
-                                {activeMenu === 'general' && (
-                                    <Form>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Title</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                value={settings.general.title}
-                                                onChange={(e) => updateSettings('general', 'title', e.target.value)}
-                                                placeholder="Enter slide title"
-                                            />
-                                        </Form.Group>
-                                        <Form.Group>
-                                            <Form.Label>Content</Form.Label>
-                                            <Form.Control
-                                                as="textarea"
-                                                rows={3}
-                                                value={settings.general.content}
-                                                onChange={(e) => updateSettings('general', 'content', e.target.value)}
-                                                placeholder="Enter slide content"
-                                            />
-                                        </Form.Group>
-                                    </Form>
-                                )}
-
-                                {activeMenu === 'colors' && (
-                                    <Form>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Background Color</Form.Label>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <Form.Control
-                                                    type="color"
-                                                    value={settings.colors.background}
-                                                    onChange={(e) => updateSettings('colors', 'background', e.target.value)}
-                                                />
-                                                <span>{settings.colors.background}</span>
-                                            </div>
-                                        </Form.Group>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Title Color</Form.Label>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <Form.Control
-                                                    type="color"
-                                                    value={settings.colors.titleColor}
-                                                    onChange={(e) => updateSettings('colors', 'titleColor', e.target.value)}
-                                                />
-                                                <span>{settings.colors.titleColor}</span>
-                                            </div>
-                                        </Form.Group>
-                                        <Form.Group>
-                                            <Form.Label>Content Color</Form.Label>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <Form.Control
-                                                    type="color"
-                                                    value={settings.colors.contentColor}
-                                                    onChange={(e) => updateSettings('colors', 'contentColor', e.target.value)}
-                                                />
-                                                <span>{settings.colors.contentColor}</span>
-                                            </div>
-                                        </Form.Group>
-                                    </Form>
-                                )}
-
-                                {activeMenu === 'fonts' && (
-                                    <Form>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Title Font</Form.Label>
-                                            <Form.Select
-                                                value={settings.fonts.titleFont}
-                                                onChange={(e) => updateSettings('fonts', 'titleFont', e.target.value)}
-                                            >
-                                                <option value="Arial">Arial</option>
-                                                <option value="Helvetica">Helvetica</option>
-                                                <option value="Times New Roman">Times New Roman</option>
-                                            </Form.Select>
-                                        </Form.Group>
-                                        <Form.Group>
-                                            <Form.Label>Body Font</Form.Label>
-                                            <Form.Select
-                                                value={settings.fonts.bodyFont}
-                                                onChange={(e) => updateSettings('fonts', 'bodyFont', e.target.value)}
-                                            >
-                                                <option value="Calibri">Calibri</option>
-                                                <option value="Arial">Arial</option>
-                                                <option value="Georgia">Georgia</option>
-                                            </Form.Select>
-                                        </Form.Group>
-                                    </Form>
-                                )}
+                    <div className="settings-form mt-4">
+                        {activeMenu === 'colors' && (
+                        <Form>
+                            <Form.Group className="mb-3">
+                            <Form.Label>Background Color</Form.Label>
+                            <div className="d-flex align-items-center gap-2">
+                                <Form.Control
+                                type="color"
+                                value={settings.colors.background}
+                                onChange={(e) => updateSettings('colors', 'background', e.target.value)}
+                                />
+                                <span>{settings.colors.background}</span>
                             </div>
-                        </div>
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                            <Form.Label>Title Color</Form.Label>
+                            <div className="d-flex align-items-center gap-2">
+                                <Form.Control
+                                type="color"
+                                value={settings.colors.titleColor}
+                                onChange={(e) => updateSettings('colors', 'titleColor', e.target.value)}
+                                />
+                                <span>{settings.colors.titleColor}</span>
+                            </div>
+                            </Form.Group>
+                            <Form.Group>
+                            <Form.Label>Content Color</Form.Label>
+                            <div className="d-flex align-items-center gap-2">
+                                <Form.Control
+                                type="color"
+                                value={settings.colors.contentColor}
+                                onChange={(e) => updateSettings('colors', 'contentColor', e.target.value)}
+                                />
+                                <span>{settings.colors.contentColor}</span>
+                            </div>
+                            </Form.Group>
+                        </Form>
+                        )}
+
+                        {activeMenu === 'fonts' && (
+                        <Form>
+                            <Form.Group className="mb-3">
+                            <Form.Label>Title Font</Form.Label>
+                            <Form.Select
+                                value={settings.fonts.titleFont}
+                                onChange={(e) => updateSettings('fonts', 'titleFont', e.target.value)}
+                            >
+                                <option value="Arial">Arial</option>
+                                <option value="Helvetica">Helvetica</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                            </Form.Select>
+                            </Form.Group>
+                            <Form.Group>
+                            <Form.Label>Body Font</Form.Label>
+                            <Form.Select
+                                value={settings.fonts.bodyFont}
+                                onChange={(e) => updateSettings('fonts', 'bodyFont', e.target.value)}
+                            >
+                                <option value="Calibri">Calibri</option>
+                                <option value="Arial">Arial</option>
+                                <option value="Georgia">Georgia</option>
+                            </Form.Select>
+                            </Form.Group>
+                        </Form>
+                        )}
                     </div>
+                    </div>
+                </div>
                 </Modal.Body>
 
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={handleClose}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={handleSave}>
-                        Save Changes
-                    </Button>
+                <Button variant="secondary" onClick={handleClose}>
+                    Cancel
+                </Button>
+                <Button variant="primary" onClick={handleSave}>
+                    Save Changes
+                </Button>
                 </Modal.Footer>
             </Modal>
 

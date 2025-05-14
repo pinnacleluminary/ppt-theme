@@ -277,19 +277,30 @@
   }
   
   .slide-container {
-    background: white;
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     overflow: hidden;
   }
   
-  .slide-content {
+  /* .slide-content {
     height: 100%;
     padding: 2rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-  }
+  } */
+  .slide-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+  margin-top: 16px;
+}
+
   
   .slide-title {
     width: 100%;

@@ -35,15 +35,21 @@ export interface PresentationSettings {
   
   export interface Slide {
     id: number;
-    content: string;
-    title: string;
+    subSlides: SubSlide[];
     background: string;
     titleColor: string;
     contentColor: string;
-    charts: ChartData[];
     titleFont?: string;
     bodyFont?: string;
   }
+
+  export interface SubSlide {
+    id: string;
+    title: string;
+    content: string;
+    chart: ChartData;
+  }
+
   
   export interface ChartData {
     id: string;

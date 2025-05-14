@@ -18,14 +18,18 @@ import SlideSettingsModal from './SlideSettingsModal';
 // Types
 interface Slide {
   id: number;
-  content: string;
-  title: string;
+  subSlides: SubSlide[];
   background: string;
   titleColor: string;
   contentColor: string;
-  charts: ChartData[];
   titleFont?: string;
   bodyFont?: string;
+}
+interface SubSlide {
+  id: string;
+  title: string;
+  content: string;
+  chart: ChartData;
 }
 
 interface Theme {
@@ -112,97 +116,66 @@ const PPTEditor: React.FC<PPTEditorProps> = ({
 
 
   const [slides, setSlides] = useState<Slide[]>([
-  {
-    id: 1,
-    title: "Title 1",
-    content: "This slide demonstrates the first theme with bar, line, and pie charts showing various data visualizations.",
-    background: predefinedThemes[0].background,
-    titleColor: predefinedThemes[0].titleColor,
-    contentColor: predefinedThemes[0].contentColor,
-    charts: [
-      {
-        id: 'theme1-bar-chart',
-        type: 'bar',
-        title: 'Sales Performance',
-        data: [
-          { name: 'Q1', Series1: 65, Series2: 45 },
-          { name: 'Q2', Series1: 45, Series2: 55 },
-          { name: 'Q3', Series1: 75, Series2: 35 },
-          { name: 'Q4', Series1: 55, Series2: 65 }
-        ]
-      },
-      {
-        id: 'theme1-line-chart',
-        type: 'line',
-        title: 'Monthly Trends',
-        data: [
-          { name: 'Jan', Series1: 30, Series2: 40 },
-          { name: 'Feb', Series1: 45, Series2: 50 },
-          { name: 'Mar', Series1: 55, Series2: 45 },
-          { name: 'Apr', Series1: 60, Series2: 65 },
-          { name: 'May', Series1: 75, Series2: 70 }
-        ]
-      },
-      {
-        id: 'theme1-pie-chart',
-        type: 'pie',
-        title: 'Market Distribution',
-        data: [
-          { name: 'Product A', value: 35 },
-          { name: 'Product B', value: 25 },
-          { name: 'Product C', value: 20 },
-          { name: 'Product D', value: 15 },
-          { name: 'Product E', value: 5 }
-        ]
-      }
-    ]
-  },
-  {
-    id: 2,
-    title: "Title 2",
-    content: "This slide showcases the second theme with alternative styling for bar, line, and pie charts.",
-    background: predefinedThemes[1].background,
-    titleColor: predefinedThemes[1].titleColor,
-    contentColor: predefinedThemes[1].contentColor,
-    charts: [
-      {
-        id: 'theme2-bar-chart',
-        type: 'bar',
-        title: 'Revenue Analysis',
-        data: [
-          { name: 'Region A', Series1: 85, Series2: 65 },
-          { name: 'Region B', Series1: 55, Series2: 75 },
-          { name: 'Region C', Series1: 95, Series2: 85 },
-          { name: 'Region D', Series1: 75, Series2: 95 }
-        ]
-      },
-      {
-        id: 'theme2-line-chart',
-        type: 'line',
-        title: 'Growth Trajectory',
-        data: [
-          { name: 'Week 1', Series1: 20, Series2: 30 },
-          { name: 'Week 2', Series1: 35, Series2: 40 },
-          { name: 'Week 3', Series1: 45, Series2: 35 },
-          { name: 'Week 4', Series1: 50, Series2: 55 },
-          { name: 'Week 5', Series1: 65, Series2: 60 }
-        ]
-      },
-      {
-        id: 'theme2-pie-chart',
-        type: 'pie',
-        title: 'Budget Allocation',
-        data: [
-          { name: 'Marketing', value: 30 },
-          { name: 'R&D', value: 25 },
-          { name: 'Operations', value: 20 },
-          { name: 'Sales', value: 15 },
-          { name: 'Admin', value: 10 }
-        ]
-      }
-    ]
-  }
-]);
+    {
+      id: 1,
+      background: predefinedThemes[0].background,
+      titleColor: predefinedThemes[0].titleColor,
+      contentColor: predefinedThemes[0].contentColor,
+      subSlides: [
+        {
+          id: 'slide1-bar',
+          title: "Sales Performance",
+          content: "This chart shows quarterly sales performance comparison.",
+          chart: {
+            id: 'theme1-bar-chart',
+            type: 'bar',
+            title: 'Sales Performance',
+            data: [
+              { name: 'Q1', Series1: 65, Series2: 45 },
+              { name: 'Q2', Series1: 45, Series2: 55 },
+              { name: 'Q3', Series1: 75, Series2: 35 },
+              { name: 'Q4', Series1: 55, Series2: 65 }
+            ]
+          }
+        },
+        {
+          id: 'slide1-line',
+          title: "Monthly Trends",
+          content: "Visualizing the monthly growth trends across different series.",
+          chart: {
+            id: 'theme1-line-chart',
+            type: 'line',
+            title: 'Monthly Trends',
+            data: [
+              { name: 'Jan', Series1: 30, Series2: 40 },
+              { name: 'Feb', Series1: 45, Series2: 50 },
+              { name: 'Mar', Series1: 55, Series2: 45 },
+              { name: 'Apr', Series1: 60, Series2: 65 },
+              { name: 'May', Series1: 75, Series2: 70 }
+            ]
+          }
+        },
+        {
+          id: 'slide1-pie',
+          title: "Market Distribution",
+          content: "Breakdown of market share across different products.",
+          chart: {
+            id: 'theme1-pie-chart',
+            type: 'pie',
+            title: 'Market Distribution',
+            data: [
+              { name: 'Product A', value: 35 },
+              { name: 'Product B', value: 25 },
+              { name: 'Product C', value: 20 },
+              { name: 'Product D', value: 15 },
+              { name: 'Product E', value: 5 }
+            ]
+          }
+        }
+      ]
+    },
+  ]);
+
 
   
   
@@ -279,81 +252,84 @@ const [editingState, setEditingState] = useState<EditingState>({
   const updateSlideContent = (slideId: number, field: 'title' | 'content', value: string) => {
     setSlides(slides.map(slide => 
       slide.id === slideId 
-        ? { ...slide, [field]: value }
+        ? {
+            ...slide,
+            subSlides: slide.subSlides.map((subSlide, index) => 
+              index === 0 
+                ? { ...subSlide, [field]: value }
+                : subSlide
+            )
+          }
         : slide
     ));
   };
+
   
   // Handlers
   const addNewSlide = () => {
-  const theme1Content = slides[0]; // Get the first theme's content
-  const newSlide: Slide = {
-    id: slides.length + 1,
-    title: `Title ${slides.length + 1}`,
-    content: "This slide demonstrates the theme with bar, line, and pie charts showing various data visualizations.",
-    background: theme1Content.background,
-    titleColor: theme1Content.titleColor,
-    contentColor: theme1Content.contentColor,
-    charts: [
-      {
-        id: `theme1-bar-chart-${slides.length + 1}`,
-        type: 'bar',
-        title: 'Sales Performance',
-        data: [
-          { name: 'Q1', Series1: 65, Series2: 45 },
-          { name: 'Q2', Series1: 45, Series2: 55 },
-          { name: 'Q3', Series1: 75, Series2: 35 },
-          { name: 'Q4', Series1: 55, Series2: 65 }
-        ]
-      },
-      {
-        id: `theme1-line-chart-${slides.length + 1}`,
-        type: 'line',
-        title: 'Monthly Trends',
-        data: [
-          { name: 'Jan', Series1: 30, Series2: 40 },
-          { name: 'Feb', Series1: 45, Series2: 50 },
-          { name: 'Mar', Series1: 55, Series2: 45 },
-          { name: 'Apr', Series1: 60, Series2: 65 },
-          { name: 'May', Series1: 75, Series2: 70 }
-        ]
-      },
-      {
-        id: `theme1-pie-chart-${slides.length + 1}`,
-        type: 'pie',
-        title: 'Market Distribution',
-        data: [
-          { name: 'Product A', value: 35 },
-          { name: 'Product B', value: 25 },
-          { name: 'Product C', value: 20 },
-          { name: 'Product D', value: 15 },
-          { name: 'Product E', value: 5 }
-        ]
-      }
-    ]
-  };
-  setSlides([...slides, newSlide]);
-  setCurrentSlide(slides.length);
-};
-
-
-  // const updateSlideContent = (content: string) => {
-  //   const updatedSlides = [...slides];
-  //   updatedSlides[currentSlide] = {
-  //     ...updatedSlides[currentSlide],
-  //     content
-  //   };
-  //   setSlides(updatedSlides);
-  // };
-
-  const updateSlideTitle = (title: string) => {
-    const updatedSlides = [...slides];
-    updatedSlides[currentSlide] = {
-      ...updatedSlides[currentSlide],
-      title
+    const theme1Content = slides[0]; // Get the first theme's content
+    const newSlide: Slide = {
+      id: slides.length + 1,
+      background: theme1Content.background,
+      titleColor: theme1Content.titleColor,
+      contentColor: theme1Content.contentColor,
+      subSlides: [
+        {
+          id: `slide${slides.length + 1}-bar`,
+          title: "Sales Performance",
+          content: "This chart shows quarterly sales performance comparison.",
+          chart: {
+            id: `theme${slides.length + 1}-bar-chart`,
+            type: 'bar',
+            title: 'Sales Performance',
+            data: [
+              { name: 'Q1', Series1: 65, Series2: 45 },
+              { name: 'Q2', Series1: 45, Series2: 55 },
+              { name: 'Q3', Series1: 75, Series2: 35 },
+              { name: 'Q4', Series1: 55, Series2: 65 }
+            ]
+          }
+        },
+        {
+          id: `slide${slides.length + 1}-line`,
+          title: "Monthly Trends",
+          content: "Visualizing the monthly growth trends across different series.",
+          chart: {
+            id: `theme${slides.length + 1}-line-chart`,
+            type: 'line',
+            title: 'Monthly Trends',
+            data: [
+              { name: 'Jan', Series1: 30, Series2: 40 },
+              { name: 'Feb', Series1: 45, Series2: 50 },
+              { name: 'Mar', Series1: 55, Series2: 45 },
+              { name: 'Apr', Series1: 60, Series2: 65 },
+              { name: 'May', Series1: 75, Series2: 70 }
+            ]
+          }
+        },
+        {
+          id: `slide${slides.length + 1}-pie`,
+          title: "Market Distribution",
+          content: "Breakdown of market share across different products.",
+          chart: {
+            id: `theme${slides.length + 1}-pie-chart`,
+            type: 'pie',
+            title: 'Market Distribution',
+            data: [
+              { name: 'Product A', value: 35 },
+              { name: 'Product B', value: 25 },
+              { name: 'Product C', value: 20 },
+              { name: 'Product D', value: 15 },
+              { name: 'Product E', value: 5 }
+            ]
+          }
+        }
+      ]
     };
-    setSlides(updatedSlides);
+    setSlides([...slides, newSlide]);
+    setCurrentSlide(slides.length);
   };
+
 
   const applyTheme = (theme: Theme) => {
     setCurrentTheme(theme);
@@ -415,41 +391,6 @@ const [editingState, setEditingState] = useState<EditingState>({
     URL.revokeObjectURL(url);
   };
 
-  const addChart = (type: 'bar' | 'line' | 'pie') => {
-    const newChart: ChartData = {
-      id: `chart-${Date.now()}`,
-      type,
-      data: DEFAULT_CHART_DATA[type],
-      title: `${type.charAt(0).toUpperCase() + type.slice(1)} Chart`
-    };
-
-    const updatedSlides = [...slides];
-    updatedSlides[currentSlide] = {
-      ...updatedSlides[currentSlide],
-      charts: [...updatedSlides[currentSlide].charts, newChart]
-    };
-    setSlides(updatedSlides);
-  };
-
-  const updateChart = (chartId: string, updatedChart: ChartData) => {
-    const updatedSlides = [...slides];
-    const slideCharts = updatedSlides[currentSlide].charts;
-    const chartIndex = slideCharts.findIndex(chart => chart.id === chartId);
-    
-    if (chartIndex !== -1) {
-      slideCharts[chartIndex] = updatedChart;
-      setSlides(updatedSlides);
-    }
-  };
-
-  const deleteChart = (chartId: string) => {
-    const updatedSlides = [...slides];
-    updatedSlides[currentSlide] = {
-      ...updatedSlides[currentSlide],
-      charts: updatedSlides[currentSlide].charts.filter(chart => chart.id !== chartId)
-    };
-    setSlides(updatedSlides);
-  };
   
   const applyFonts = (fonts: ThemeFonts) => {
     const updatedSlides = [...slides];
@@ -460,6 +401,31 @@ const [editingState, setEditingState] = useState<EditingState>({
     };
     setSlides(updatedSlides);
   };
+
+  const updateSubSlideTitle = (slideIndex: number, subSlideIndex: number, title: string) => {
+    const updatedSlides = [...slides];
+    updatedSlides[slideIndex].subSlides[subSlideIndex].title = title;
+    setSlides(updatedSlides);
+  };
+
+  const updateSubSlideContent = (slideIndex: number, subSlideIndex: number, content: string) => {
+    const updatedSlides = [...slides];
+    updatedSlides[slideIndex].subSlides[subSlideIndex].content = content;
+    setSlides(updatedSlides);
+  };
+
+  const updateSubSlideChart = (slideIndex: number, subSlideIndex: number, updatedChart: ChartData) => {
+    const updatedSlides = [...slides];
+    updatedSlides[slideIndex].subSlides[subSlideIndex].chart = updatedChart;
+    setSlides(updatedSlides);
+  };
+
+  const deleteSubSlide = (slideIndex: number, subSlideIndex: number) => {
+    const updatedSlides = [...slides];
+    updatedSlides[slideIndex].subSlides.splice(subSlideIndex, 1);
+    setSlides(updatedSlides);
+  };
+
 
   return (
     <div className="ppt-editor">
@@ -638,8 +604,8 @@ const [editingState, setEditingState] = useState<EditingState>({
               {editingState.slideId === slide.id && editingState.field === 'title' ? (
                 <input
                   type="text"
-                  value={slide.title}
-                  onChange={(e) => updateSlideContent(slide.id, 'title', e.target.value)}
+                  value={slide.subSlides[0].title} // Use first subSlide's title
+                  onChange={(e) => updateSubSlideTitle(index, 0, e.target.value)}
                   className="edit-input title-input"
                   autoFocus
                   onBlur={handleFieldSave}
@@ -647,24 +613,29 @@ const [editingState, setEditingState] = useState<EditingState>({
                 />
               ) : (
                 <div className="thumbnail-title">
-                  {slide.title}
+                  {slide.subSlides[0].title}
                 </div>
               )}
+
+              <div className="thumbnail-text" style={{ color: slide.contentColor }}>
+                  {slide.subSlides[0].content.substring(0, 35) + "..."}
+                </div>
               
-              {editingState.slideId === slide.id && editingState.field === 'content' ? (
+              {/* {editingState.slideId === slide.id && editingState.field === 'content' ? (
                 <textarea
-                  value={slide.content}
-                  onChange={(e) => updateSlideContent(slide.id, 'content', e.target.value)}
+                  value={slide.subSlides[0].content}
+                  onChange={(e) => updateSubSlideContent(index, 0, e.target.value)}
                   className="edit-input content-input"
                   autoFocus
                   onBlur={handleFieldSave}
                 />
               ) : (
                 <div className="thumbnail-text" style={{ color: slide.contentColor }}>
-                  {slide.content.substring(0, 50)}...
+                  {slide.subSlides[0].content.substring(0, 50)}
                 </div>
-              )}
+              )} */}
             </div>
+
 
             </div>
             <div className="thumbnail-footer">
@@ -687,59 +658,61 @@ const [editingState, setEditingState] = useState<EditingState>({
             </div>
           </div>
         ))}
-    </div>
+        </div>
 
         <div className="slide-editor">
-  <div 
-    className="slide-container"
-    style={{
-      width: currentSize.width,
-    }}
-  >
-    <div 
-      className="slide-content"
-      style={{
-        backgroundColor: slides[currentSlide].background,
-      }}
-    >
-      <input
-        type="text"
-        className="slide-title"
-        value={slides[currentSlide].title}
-        onChange={(e) => updateSlideTitle(e.target.value)}
-        placeholder="Click to add title"
-        style={{
-          color: slides[currentSlide].titleColor,
-          fontFamily: slides[currentSlide].titleFont || 'inherit'
-        }}
-        readOnly={editingState.slideId !== slides[currentSlide].id}
-      />
-      <textarea
-        className="slide-body"
-        value={slides[currentSlide].content}
-        onChange={(e) => updateSlideContent(slides[currentSlide].id, 'content', e.target.value)}
-        placeholder="Click to add content"
-        style={{
-          color: slides[currentSlide].contentColor,
-          fontFamily: slides[currentSlide].bodyFont || 'inherit'
-        }}
-        readOnly={editingState.slideId !== slides[currentSlide].id}
-      />
-      
-      <div className="charts-container">
-        {slides[currentSlide].charts.map((chart) => (
-          <ChartEditor
-            key={chart.id}
-            chartData={chart}
-            onUpdate={(updatedChart) => updateChart(chart.id, updatedChart)}
-            onDelete={() => deleteChart(chart.id)}
-            themeColors={themeColors}
-          />
-        ))}
-      </div>
-    </div>
-  </div>
-</div>
+          <div 
+            className="slide-container"
+            style={{
+              width: currentSize.width,
+            }}
+          >
+            {slides[currentSlide].subSlides.map((subSlide, index) => (
+              <div 
+                key={subSlide.id}
+                className="slide-content mb-4"
+                style={{
+                  backgroundColor: slides[currentSlide].background,
+                }}
+              >
+                <input
+                  type="text"
+                  className="slide-title"
+                  value={subSlide.title}
+                  onChange={(e) => updateSubSlideTitle(currentSlide, index, e.target.value)}
+                  placeholder="Click to add title"
+                  style={{
+                    color: slides[currentSlide].titleColor,
+                    fontFamily: slides[currentSlide].titleFont || 'inherit'
+                  }}
+                  readOnly={editingState.slideId !== slides[currentSlide].id}
+                />
+                <textarea
+                  className="slide-body"
+                  value={subSlide.content}
+                  onChange={(e) => updateSubSlideContent(currentSlide, index, e.target.value)}
+                  placeholder="Click to add content"
+                  style={{
+                    color: slides[currentSlide].contentColor,
+                    fontFamily: slides[currentSlide].bodyFont || 'inherit'
+                  }}
+                  readOnly={editingState.slideId !== slides[currentSlide].id}
+                />
+                
+                <div className="chart-container">
+                  <ChartEditor
+                    key={subSlide.chart.id}
+                    chartData={subSlide.chart}
+                    onUpdate={(updatedChart) => updateSubSlideChart(currentSlide, index, updatedChart)}
+                    onDelete={() => deleteSubSlide(currentSlide, index)}
+                    themeColors={themeColors}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
 
       {/* Modals */}
@@ -751,21 +724,39 @@ const [editingState, setEditingState] = useState<EditingState>({
       <ChartModal
         isOpen={showChartModal}
         onClose={() => setShowChartModal(false)}
-        onSelectChart={addChart}
+        onSelectChart={(type) => {
+          const newSubSlide: SubSlide = {
+            id: `slide${currentSlide + 1}-${type}`,
+            title: `New ${type} Chart`,
+            content: `This is a new ${type} chart`,
+            chart: {
+              id: `chart-${Date.now()}`,
+              type,
+              title: `New ${type} Chart`,
+              data: DEFAULT_CHART_DATA[type]
+            }
+          };
+          
+          const updatedSlides = [...slides];
+          updatedSlides[currentSlide].subSlides.push(newSubSlide);
+          setSlides(updatedSlides);
+        }}
       />
+
       <SlideSettingsModal
         isOpen={showSlideSettingsModal}
         onClose={() => setShowSlideSettingsModal(false)}
         onSave={(settings) => {
-          // Handle save logic here
           if (editingSlideId === null) {
             // Create new slide
             const newSlide: Slide = {
               id: slides.length + 1,
-              ...settings.general,
-              ...settings.colors,
-              ...settings.fonts,
-              charts: []
+              background: settings.colors.background,
+              titleColor: settings.colors.titleColor,
+              contentColor: settings.colors.contentColor,
+              titleFont: settings.fonts.titleFont,
+              bodyFont: settings.fonts.bodyFont,
+              subSlides: [] // Initialize with empty subSlides array
             };
             setSlides([...slides, newSlide]);
             setCurrentSlide(slides.length);
@@ -773,7 +764,14 @@ const [editingState, setEditingState] = useState<EditingState>({
             // Update existing slide
             const updatedSlides = slides.map(slide =>
               slide.id === editingSlideId
-                ? { ...slide, ...settings.general, ...settings.colors, ...settings.fonts }
+                ? {
+                    ...slide,
+                    background: settings.colors.background,
+                    titleColor: settings.colors.titleColor,
+                    contentColor: settings.colors.contentColor,
+                    titleFont: settings.fonts.titleFont,
+                    bodyFont: settings.fonts.bodyFont
+                  }
                 : slide
             );
             setSlides(updatedSlides);
@@ -783,6 +781,7 @@ const [editingState, setEditingState] = useState<EditingState>({
         initialSlide={editingSlideId ? slides.find(s => s.id === editingSlideId) : undefined}
         mode={editingSlideId ? 'edit' : 'create'}
       />
+
     </div>
   );
 };
