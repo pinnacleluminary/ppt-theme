@@ -55,12 +55,12 @@ export class PPTSettingsService {
     }
 
     // Validate each slide
-    for (const slide of settings.slides) {
-      if (!slide.id || !slide.title || !slide.content || 
-          !slide.background || !slide.titleColor || !slide.contentColor) {
-        return false;
-      }
-    }
+    // for (const slide of settings.slides) {
+    //   if (!slide.id || !slide.title || !slide.content || 
+    //       !slide.background || !slide.titleColor || !slide.contentColor) {
+    //     return false;
+    //   }
+    // }
     
     return true;
   }

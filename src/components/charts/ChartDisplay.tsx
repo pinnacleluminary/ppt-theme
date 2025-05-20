@@ -107,7 +107,7 @@ export const ChartDisplay: React.FC<ChartDisplayProps> = ({ chartData, themeColo
       <h5 className="text-center mb-3" style={{ color: themeColors.textDark1 }}>
         {title}
       </h5>
-      <div style={{ width: '100%', height: '300px' }}>
+      <div style={{ width: '100%', height: '250px' }}>
         <ResponsiveContainer>{renderChart()}</ResponsiveContainer>
       </div>
     </div>

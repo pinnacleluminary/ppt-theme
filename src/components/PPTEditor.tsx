@@ -11,26 +11,11 @@ import { ChartToolbar } from './charts/ChartToolbar';
 import { defaultThemeColors, ThemeColorPicker } from './ThemeColorPicker';
 import { ThemeFontsManager } from './ThemeFontsManager';
 import { ThemeFonts } from './ThemeFontsEditor';
-import { PresentationSettings } from './PPTTypes';
+import { Slide, SubSlide, PresentationSettings, SlideSettings } from './PPTTypes';
 import './PPTEditor.css';
 import SlideSettingsModal from './SlideSettingsModal';
+import { toast } from 'react-toastify';
 
-// Types
-interface Slide {
-  id: number;
-  subSlides: SubSlide[];
-  background: string;
-  titleColor: string;
-  contentColor: string;
-  titleFont?: string;
-  bodyFont?: string;
-}
-interface SubSlide {
-  id: string;
-  title: string;
-  content: string;
-  chart: ChartData;
-}
 
 interface Theme {
   name: string;
@@ -232,9 +217,78 @@ const [editingState, setEditingState] = useState<EditingState>({
   });
 
   const handleEdit = (slideId: number) => {
-    setEditingSlideId(slideId);
-    setShowSlideSettingsModal(true);
+    const slideToEdit = slides.find(s => s.id === slideId);
+    if (slideToEdit) {
+        setEditingSlideId(slideId);
+        setShowSlideSettingsModal(true);
+    }
   };
+
+  const saveSettingsToBackend = async (settings: SlideSettings) => {
+      try {
+        console.log(settings);
+          // const response = await fetch('/api/presentation/settings', {
+          //     method: 'POST',
+          //     headers: {
+          //         'Content-Type': 'application/json',
+          //     },
+          //     body: JSON.stringify(settings)
+          // });
+
+          // if (!response.ok) {
+          //     throw new Error('Failed to save settings');
+          // }
+
+          // const data = await response.json();
+          // return data;
+      } catch (error) {
+          console.error('Error saving settings:', error);
+          throw error;
+      }
+  };
+
+  const handleSlideSettingsSave = async (settings: SlideSettings) => {
+      try {
+          await saveSettingsToBackend(settings);
+
+          const updatedSlides = slides.map(slide => {
+              if (slide.id === editingSlideId) {
+                  const updatedSlide: Slide = {
+                      ...slide,
+                      background: settings.colors.background,
+                      titleColor: settings.colors.titleColor,
+                      contentColor: settings.colors.contentColor,
+                      titleFont: settings.fonts.titleFont,
+                      bodyFont: settings.fonts.bodyFont,
+                      logo: settings.general.logo,
+                      logoPosition: settings.general.logoPosition as Slide['logoPosition'],
+                      slideSize: settings.general.slideSize as Slide['slideSize'],
+                      customWidth: settings.general.customWidth,
+                      customHeight: settings.general.customHeight,
+                      subSlides: settings.subSlides.map(subSlide => ({
+                          id: subSlide.id,
+                          title: subSlide.title,
+                          content: subSlide.content,
+                          chart: slide.subSlides.find(s => s.id === subSlide.id)?.chart
+                      }))
+                  };
+                  return updatedSlide;
+              }
+              return slide;
+          });
+          
+          setSlides(updatedSlides);
+          setShowSlideSettingsModal(false);
+
+          // Show success message
+          toast.success('Settings saved successfully');
+      } catch (error) {
+          // Show error message
+          toast.error('Failed to save settings. Please try again.');
+          console.error('Error in handleSlideSettingsSave:', error);
+      }
+  };
+
 
   const handleCreateNew = () => {
     setEditingSlideId(null);
@@ -673,8 +727,18 @@ const [editingState, setEditingState] = useState<EditingState>({
                 className="slide-content mb-4"
                 style={{
                   backgroundColor: slides[currentSlide].background,
+                  position: 'relative'
                 }}
               >
+                {slides[currentSlide].logo && (
+                  <div className={`logo-container logo-${slides[currentSlide].logoPosition || 'top-left'}`}>
+                    <img 
+                      src={slides[currentSlide].logo} 
+                      alt="Logo" 
+                      className="slide-logo"
+                    />
+                  </div>
+                )}
                 <input
                   type="text"
                   className="slide-title"
@@ -746,39 +810,40 @@ const [editingState, setEditingState] = useState<EditingState>({
       <SlideSettingsModal
         isOpen={showSlideSettingsModal}
         onClose={() => setShowSlideSettingsModal(false)}
-        onSave={(settings) => {
-          if (editingSlideId === null) {
-            // Create new slide
-            const newSlide: Slide = {
-              id: slides.length + 1,
-              background: settings.colors.background,
-              titleColor: settings.colors.titleColor,
-              contentColor: settings.colors.contentColor,
-              titleFont: settings.fonts.titleFont,
-              bodyFont: settings.fonts.bodyFont,
-              subSlides: [] // Initialize with empty subSlides array
-            };
-            setSlides([...slides, newSlide]);
-            setCurrentSlide(slides.length);
-          } else {
-            // Update existing slide
-            const updatedSlides = slides.map(slide =>
-              slide.id === editingSlideId
-                ? {
-                    ...slide,
-                    background: settings.colors.background,
-                    titleColor: settings.colors.titleColor,
-                    contentColor: settings.colors.contentColor,
-                    titleFont: settings.fonts.titleFont,
-                    bodyFont: settings.fonts.bodyFont
-                  }
-                : slide
-            );
-            setSlides(updatedSlides);
-          }
-          setShowSlideSettingsModal(false);
-        }}
-        initialSlide={editingSlideId ? slides.find(s => s.id === editingSlideId) : undefined}
+        // onSave={(settings) => {
+        //   if (editingSlideId === null) {
+        //     // Create new slide
+        //     const newSlide: Slide = {
+        //       id: slides.length + 1,
+        //       background: settings.colors.background,
+        //       titleColor: settings.colors.titleColor,
+        //       contentColor: settings.colors.contentColor,
+        //       titleFont: settings.fonts.titleFont,
+        //       bodyFont: settings.fonts.bodyFont,
+        //       subSlides: [] // Initialize with empty subSlides array
+        //     };
+        //     setSlides([...slides, newSlide]);
+        //     setCurrentSlide(slides.length);
+        //   } else {
+        //     // Update existing slide
+        //     const updatedSlides = slides.map(slide =>
+        //       slide.id === editingSlideId
+        //         ? {
+        //             ...slide,
+        //             background: settings.colors.background,
+        //             titleColor: settings.colors.titleColor,
+        //             contentColor: settings.colors.contentColor,
+        //             titleFont: settings.fonts.titleFont,
+        //             bodyFont: settings.fonts.bodyFont
+        //           }
+        //         : slide
+        //     );
+        //     setSlides(updatedSlides);
+        //   }
+        //   setShowSlideSettingsModal(false);
+        // }}
+        onSave={handleSlideSettingsSave}
+        initialSlide={slides.find(s => s.id === editingSlideId)}
         mode={editingSlideId ? 'edit' : 'create'}
       />
 
